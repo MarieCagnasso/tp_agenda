@@ -11,6 +11,8 @@ import java.time.temporal.ChronoUnit;
  */
 public class FixedTerminationEvent extends RepetitiveEvent {
 
+    private LocalDate terminationInclusive;
+    private long numberOfOccurrences;
     
     /**
      * Constructs a fixed terminationInclusive event ending at a given date
@@ -28,9 +30,8 @@ public class FixedTerminationEvent extends RepetitiveEvent {
      */
     public FixedTerminationEvent(String title, LocalDateTime start, Duration duration, ChronoUnit frequency, LocalDate terminationInclusive) {
          super(title, start, duration, frequency);
-        // TODO : implémenter cette méthode
-        throw new UnsupportedOperationException("Pas encore implémenté");
-
+         this.terminationInclusive = terminationInclusive;
+         addOccurence();
     }
 
     /**
@@ -49,8 +50,16 @@ public class FixedTerminationEvent extends RepetitiveEvent {
      */
     public FixedTerminationEvent(String title, LocalDateTime start, Duration duration, ChronoUnit frequency, long numberOfOccurrences) {
         super(title, start, duration, frequency);
-        // TODO : implémenter cette méthode
-        throw new UnsupportedOperationException("Pas encore implémenté");
+        this.numberOfOccurrences = numberOfOccurrences;
+        addDateFin();
+    }
+
+    private void addOccurence() {
+        this.numberOfOccurrences = this.getStart().toLocalDate().until(this.terminationInclusive,this.getFrequency())+1;
+    }
+
+    private void addDateFin(){
+        this.terminationInclusive = getStart().toLocalDate().plus(this.numberOfOccurrences-1,getFrequency());
     }
 
     /**
@@ -58,13 +67,26 @@ public class FixedTerminationEvent extends RepetitiveEvent {
      * @return the termination date of this repetitive event
      */
     public LocalDate getTerminationDate() {
-        // TODO : implémenter cette méthode
-        throw new UnsupportedOperationException("Pas encore implémenté");   
+        return terminationInclusive;
     }
 
     public long getNumberOfOccurrences() {
-        // TODO : implémenter cette méthode
-        throw new UnsupportedOperationException("Pas encore implémenté");
+        return numberOfOccurrences;
     }
-        
+
+   @Override
+    public boolean isInDay(LocalDate aDay) {
+       if (getExceptions().contains(aDay) || aDay.isAfter(terminationInclusive)) {
+           return false;
+       }
+
+      LocalDate date = this.getStart().toLocalDate();
+
+       while(date.isBefore(aDay) ){
+           date = date.plus(1,getFrequency());
+       }
+
+       return aDay.equals(date);
+    }
+
 }
